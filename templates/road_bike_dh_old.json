@@ -1,0 +1,180 @@
+{
+  "scene": {
+    "fps": 2,
+    "height": 2160,
+    "width": 3840
+  },
+  "global": {
+    "font_size": 30,
+    "font": "Evogria.otf",
+    "color": "#ffffffdd",
+    "round": 0,
+    "opacity": 0.8
+  },
+  "labels": [
+    {
+      "color": "#ffffffdd",
+      "title": "speed",
+      "text": "\uF625",
+      "font": "fa6.otf",
+      "x": 100,
+      "y": 100,
+      "hide": false,
+      "font_size":70
+    },
+    {
+      "color": "#ffffffdd",
+      "text": "\uF0E7",
+      "font": "fa6.otf",
+      "x": 100,
+      "y": 450,
+      "hide": false,
+      "font_size": 70
+    },
+    {
+      "color": "#ffffffdd",
+      "title": "RPM",
+      "text": "\uF013",
+      "text": "\uF2F1",
+
+      "font": "fa6.otf",
+      "x": 100,
+      "y": 800,
+      "hide": false,
+      "font_size": 70
+    },
+
+    {
+      "color": "#ffffffdd",
+      "text": "\uF21E",
+      "font": "fa6.otf",
+      "x": 100,
+      "y": 1150,
+      "hide": false,
+      "font_size": 70
+    },
+    {
+      "color": "#ffffffdd",
+      "text": "GRAD",
+      "x": 100,
+      "y": 1600,
+      "hide": true,
+      "font_size": 70
+    }
+  ],
+
+
+  "course": {
+    "color": "#ffffffdd",
+    "dpi": 200,
+    "x": 2940,
+    "y": 100,
+    "hide": false,
+    "opacity": 0.8,
+    "line_width": 4,
+    "point_weight": 180,
+    "width": 800,
+    "height": 1600,
+    "sub_point": {
+      "point_weight": 280,
+      "opacity": 0.8
+    },
+    "rotation": 0
+  },
+  "elevation": {
+    "dpi": 100,
+    "x": 0,
+    "y": 60,
+    "hide": false,
+    "profile": {
+      "color": "#f4f4f4",
+      "dpi": 100,
+      "line_width": 2,
+      "hide": true,
+      "x": 0,
+      "y": 1860,
+      "width": 3840,
+      "height": 300,
+      "font_size": 70,
+      "font": "Evogria.otf",
+      "fill_opacity": 0.65,
+      "rotation": 0,
+      "round": 0,
+      "point_weight": 14,
+      "suffix": " M",
+      "point_label": {
+        "color": "#ffffffc8",
+        "font": "Furore.otf",
+        "round": 0,
+        "x_offset": 20,
+        "y_offset": 20,
+        "font_size": 12.5,
+        "units": ["metric", "imperial"]
+      }
+    }
+  },
+  "speed": {
+    "hide": false,
+    "opacity": 0.3,
+    "imperial": {
+      "x": 0,
+      "y": 180,
+      "hide": true,
+      "suffix": " mph"
+    },
+    "metric": {
+      "color": "#ffffffdd",
+      "x": 80,
+      "y": 150,
+      "font_size": 245,
+      "suffix": ""
+    }
+  },
+  "power": {
+    "color": "#ffffffdd",
+    "x": 80,
+    "y": 500,
+    "font_size": 245,
+    "hide": false,
+    "suffix": ""
+  },
+  "cadence": {
+      "color": "#ffffffdd",
+      "x": 80,
+      "y": 850,
+      "font_size": 245,
+      "round": 0,
+      "hide": false,
+      "suffix": ""
+  },
+  "heartrate": {
+      "color": "#ffffffdd",
+      "x": 80,
+      "y": 1200,
+      "font_size": 245,
+      "hide": false,
+      "suffix": ""
+  },
+  "gradient": {
+      "color": "#ffffffdd",
+      "x": 80,
+      "y": 1750,
+      "font_size": 235,
+      "round": 0,
+      "hide": false,
+      "suffix": "%"
+  },
+  "time": {
+    "hide": true,
+    "color": "#ffff00ff",
+    "text": "GRAD",
+    "x": 50,
+    "y": 100,
+    "hours_offset": 2,
+    "format": "%H:%M:%S",
+    "font_size": 70
+  },
+  "temperature": {
+    "hide": true
+  }
+}

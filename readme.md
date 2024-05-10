@@ -1,30 +1,17 @@
 # Cyclemetry - generate GPX video overlays
-![The_Tremola_by Safa_Brian](https://github.com/walkersutton/cyclemetry/assets/25811783/71aa4902-dd29-453f-b4a5-a87ddabd2437)
+
+Idea and part of code copied from https://github.com/walkersutton/cyclemetrygu
+
+Tested using Python 3.12 on MacOS
 
 ## Features
 * Live course tracking
 * Live elevation profile
-* Cadence, elevation, gradient, heartrate, power, speed, etc.
-* Supports imperial and metric units
+* Cadence, elevation, gradient, heartrate, power, speed, time.
 
-## Running
-```sh
-(venv) $ python main.py <gpx_file> <template_filename>
-```
-## Templates
-* [Safa Brian A](https://github.com/walkersutton/cyclemetry/blob/main/templates/safa_brian_a.json) (featured image on readme)
-
-### Template Wizard
-`python config.py <template_filename>` will launch an interactive CLI program and image preview that can help you modify a template. If you don't specify a `template_filename`, a blank template, `blank_template.json`, will be created that you can modify.
-* Templates live in the `./templates` directory
 
 ## Dependencies
 * [ffmpeg](https://FFmpeg.org/)
-
-## Setup
-Tested using Python 3.11.4 and 3.11.6 on MacOS Ventura and MacOS Sonoma
-
-**Not working on Python 3.12.0 (distutils dependency issue)**
 
 ```sh
 $ git clone https://github.com/walkersutton/cyclemetry.git
@@ -34,15 +21,28 @@ $ source venv/bin/activate
 (venv) $ pip install -r requirements.txt
 ```
 
-## How to
+## Setup
+Change vars in `conf.py`
+```
+SOURCE_DIR - path to dir with mp4 gopro videos 
+SOURCE_GPX - path to main gpx file
+OFSET_HOURS - gpx offset = you local time offset in hours * -1
+VIDEO_TIME_OFFSET - if you camera not synchronized with local time
+TEMPLATE - overlay template
+```
 
-I need to make Cyclemetry a bit easier to use. [Here's a video](https://youtu.be/gqn5MfcypH4) where I explain how I'm currently using the tool. I plan on writing a more concise user guide in the coming weeks.
 
-## Alternate Tools
-* [DashWare](http://www.dashware.net/) (only available on Windows)
-* [Garmin VIRB Edit](https://www.garmin.com/en-US/p/573412)
-* [GoPro Telemetry Extractor](https://goprotelemetryextractor.com/) ($150/$300? - fuck that)
+## Running
+```sh
+python3 action_rename_media.py
+python3 action_split_gpx.py
+python3 action_create_overlay.py
+```
 
-## Contributors
-* All contributions are welcome
-* Feel free to [submit your templates](https://github.com/walkersutton/cyclemetry/pulls) for others to use
+# TODO
+- Add points interpolation
+- 
+## Templates
+- Safa Brian A
+- Safa Brian B
+- NorCal Cycling

@@ -1,12 +1,8 @@
 import json
 import os
 import subprocess
-import sys
-from datetime import datetime
 
 import inquirer
-
-import constant
 
 
 def raw_configs(filename):
@@ -187,71 +183,3 @@ def modify_template(config_filename):
                 print(f"Permission denied to delete {f}.")
             except Exception as e:
                 print(f"An error occurred while deleting {f}: {str(e)}")
-
-
-def blank_template(filename="blank_template.json"):
-    default_hide = False
-    blank_asset = {
-        "dpi": 150,
-        "x": 0,
-        "y": 0,
-        "hide": default_hide,
-        "line_width": 2,
-        "point_weight": 60,
-        "sub_point": {  # maybe this should only be for course and not elevation profile
-            "point_weight": 280,
-            "opacity": 0.5,
-        },
-    }
-    blank_global = {
-        "font_size": 30,
-        "font": "Evogria.otf",
-        "color": "#ffffff",
-    }
-
-    blank_value = {"x": 0, "y": 0, "hide": default_hide}
-    blank_label = {"text": "test label", "x": 0, "y": 0, "hide": default_hide}
-    blank_scene = {
-        "fps": 30,
-        "height": 1080,
-        "width": 1920,
-        "quicktime_compatible": True,
-        "output_filename": "out.mov",
-    }
-    blank_time = {"hours_offset": 0, "format": "%H:%M:%S"}
-    config = {}
-    y = 0
-    for attribute in constant.ALL_ATTRIBUTES:
-        config[attribute] = blank_value.copy()
-        match attribute:
-            case constant.ATTR_SPEED | constant.ATTR_TEMPERATURE:  # fix elevation properties
-                config[attribute]["imperial"] = blank_value.copy()
-                config[attribute]["imperial"]["y"] = y
-                y += 30
-                config[attribute]["imperial"]["suffix"] = constant.DEFAULT_SUFFIX_MAP[
-                    attribute
-                ]["imperial"]
-                config[attribute]["metric"] = blank_value.copy()
-                config[attribute]["metric"]["y"] = y
-                y += 30
-                config[attribute]["metric"]["suffix"] = constant.DEFAULT_SUFFIX_MAP[
-                    attribute
-                ]["metric"]
-                del config[attribute]["x"]
-                del config[attribute]["y"]
-            case constant.ATTR_CADENCE | constant.ATTR_GRADIENT | constant.ATTR_HEARTRATE | constant.ATTR_POWER:
-                config[attribute]["suffix"] = constant.DEFAULT_SUFFIX_MAP[attribute]
-            case constant.ATTR_COURSE | constant.ATTR_ELEVATION:
-                config[attribute] = blank_asset.copy()
-                config[attribute]["rotation"] = 0
-                if attribute == constant.ATTR_ELEVATION:
-                    config[attribute]["profile"] = blank_asset.copy()
-            case constant.ATTR_TIME:
-                config[attribute].update(blank_time)
-        if "y" in config[attribute].keys():
-            config[attribute]["y"] = y
-            y += 30
-    config["global"] = blank_global
-    config["scene"] = blank_scene
-    config["labels"] = [blank_label.copy()]
-    json.dump(config, open(f"templates/{filename}", "w"), indent=2)

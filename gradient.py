@@ -1,7 +1,6 @@
 import gpxpy
 import numpy as np
 from gpxpy.geo import Location
-from scipy.signal import savgol_filter
 from scipy.stats import zscore
 from tsmoothie.smoother import LowessSmoother
 
@@ -31,24 +30,10 @@ def handle_outliers(gradients):
     return interpolated_gradients
 
 
-def window_smooth(gradients, window_size=5):
-    smooth_gradients = []
-    for ii in range(len(gradients)):
-        start_idx = max(0, ii - window_size // 2)
-        end_idx = min(len(gradients), ii + window_size // 2 + 1)
-        smoothed_value = sum(gradients[start_idx:end_idx]) / (end_idx - start_idx)
-        smooth_gradients.append(smoothed_value)
-    return smooth_gradients
-
-
 def lowess_smooth(gradients, smooth_fraction=0.0005, iterations=1):
     smoother = LowessSmoother(smooth_fraction=smooth_fraction, iterations=iterations)
     smoother.smooth(gradients)
     return smoother.smooth_data[0].tolist()
-
-
-def savgol_smooth(gradients):
-    return savgol_filter(gradients, window_length=5, polyorder=2).tolist()
 
 
 def smooth_gradients(gradients):

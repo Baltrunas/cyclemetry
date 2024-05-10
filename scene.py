@@ -1,27 +1,29 @@
 import math
 import os
-import shutil
-import subprocess
 from subprocess import PIPE, Popen
 
-import numpy as np
 from tqdm import tqdm
 
-import constant
+import conf
 from config import config_dicts
 from frame import Frame
-from plot import build_figure
 
 
 class Scene:
     def __init__(
         self,
         activity,
-        valid_attributes,
+        output_filename,
         config_filename,
+        full_activity=None,
     ):
         self.activity = activity
-        self.attributes = valid_attributes
+        if full_activity:
+            self.full_activity = full_activity
+        else:
+            self.full_activity = activity
+        self.attributes = activity.valid_attributes
+        self.output_filename = output_filename
         self.configs = config_dicts(config_filename)
         self.fps = self.configs["scene"]["fps"]
         self.labels = self.configs["labels"]
@@ -34,48 +36,28 @@ class Scene:
     def render_demo(self, seconds, second):
         self.build_frame(seconds, second, 0)
         self.draw_frames()
-        # TODO is there a better way to close plots on the fly?
-        import matplotlib.pyplot as plt
 
-        plt.close("all")
-
-    def update_configs(self, config_filename):
-        self.configs = config_dicts(config_filename)
 
     def draw_frames(self):
-        if not os.path.exists(constant.FRAMES_DIR):
-            os.makedirs(constant.FRAMES_DIR)
+        if not os.path.exists(conf.FRAMES_DIR):
+            os.makedirs(conf.FRAMES_DIR)
         for frame in tqdm(self.frames, dynamic_ncols=True):
-            frame.draw(self.configs, self.figs).save(frame.full_path())
+            frame.draw(self.configs).save(frame.full_path())
 
-    def build_figures(self):
-        self.figs = {}
-        self.figs[constant.ATTR_COURSE] = build_figure(
-            self.configs[constant.ATTR_COURSE],
-            [ele[1] for ele in self.activity.course],
-            [ele[0] for ele in self.activity.course],
-        )
-        self.figs[constant.ATTR_ELEVATION] = build_figure(
-            self.configs[constant.ATTR_ELEVATION]["profile"],
-            [ii for ii in range(len(self.activity.elevation))],
-            self.activity.elevation,
-        )
 
-    # warning: quicktime_compatible codec produces nearly x5 larger file
+    # warning: QUICKTIME_COMPATIBLE codec produces nearly x5 larger file
     def export_video(self):
-        output_filename = self.configs["scene"]["output_filename"]
-        quicktime_compatible = self.configs["scene"]["quicktime_compatible"]
         less_verbose = ["-loglevel", "warning"]
         framerate = ["-r", str(self.fps)]
         fmt = ["-f", "image2pipe"]
         input_files = ["-i", "-"]
-        codec = ["-c:v", "prores_ks"] if quicktime_compatible else ["-c:v", "png"]
+        codec = ["-c:v", "prores_ks"] if conf.QUICKTIME_COMPATIBLE else ["-c:v", "png"]
         pixel_format = (
             ["-pix_fmt", "yuva444p10le"]
-            if quicktime_compatible
+            if conf.QUICKTIME_COMPATIBLE
             else ["-pix_fmt", "rgba"]
         )
-        output = ["-y", output_filename]
+        output = ["-y", self.output_filename]
         p = Popen(
             ["ffmpeg"]
             + less_verbose
@@ -89,13 +71,11 @@ class Scene:
         )
 
         for frame in tqdm(self.frames, dynamic_ncols=True):
-            frame.draw(self.configs, self.figs).save(p.stdin, "PNG")
+            frame.draw(self.configs).save(p.stdin, "PNG")
 
         p.stdin.close()
         p.wait()
 
-        if quicktime_compatible:
-            subprocess.call(["open", output_filename])
 
         # TODO - try to not depend on ffmpeg subprocess call please
         # clips = [
@@ -112,7 +92,7 @@ class Scene:
     def frame_attribute_data(self, second: int, frame_number: int):
         attribute_data = {}
         for attribute in self.attributes:
-            if attribute in constant.NO_INTERPOLATE_ATTRIBUTES:
+            if attribute in conf.NO_INTERPOLATE_ATTRIBUTES:
                 attribute_data[attribute] = getattr(self.activity, attribute)[second]
             else:
                 attribute_data[attribute] = getattr(self.activity, attribute)[
@@ -130,6 +110,8 @@ class Scene:
             second,
             frame_number,
         )
+        frame.activity = self.activity
+        frame.full_activity = self.full_activity
         frame.attributes = self.attributes
         frame.labels = self.labels
         frame_data = self.frame_attribute_data(second, frame_number)

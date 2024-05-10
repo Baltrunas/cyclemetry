@@ -5,7 +5,7 @@ import gpxpy
 import numpy as np
 from scipy.interpolate import interp1d
 
-import constant
+import conf
 from gradient import gradient, smooth_gradients
 
 
@@ -16,6 +16,7 @@ def gpx_attribute_map(filename="gpx_attribute_map.json"):
 
 class Activity:
     def __init__(self, filename):
+        self.length = 0
         self.gpx = gpxpy.parse(open(filename, "r"))
         self.set_valid_attributes()
         self.parse_data()
@@ -34,10 +35,10 @@ class Activity:
         ]
         for track_point in track_points:
             attributes.update(
-                {constant.ATTR_COURSE, constant.ATTR_SPEED}
+                {conf.ATTR_COURSE, conf.ATTR_SPEED}
             ) if track_point.latitude and track_point.longitude else None
-            attributes.add(constant.ATTR_TIME) if track_point.time else None
-            attributes.add(constant.ATTR_ELEVATION) if track_point.elevation else None
+            attributes.add(conf.ATTR_TIME) if track_point.time else None
+            attributes.add(conf.ATTR_ELEVATION) if track_point.elevation else None
             for ii, extension in enumerate(track_point.extensions):
                 if extension.tag in attribute_map.keys():
                     attributes.add(attribute_map[extension.tag])
@@ -46,8 +47,8 @@ class Activity:
                     if child_extension.tag in attribute_map.keys():
                         attributes.add(attribute_map[child_extension.tag])
                         tag_map[attribute_map[child_extension.tag]] = [ii, jj]
-            if {constant.ATTR_COURSE, constant.ATTR_ELEVATION}.issubset(attributes):
-                attributes.add(constant.ATTR_GRADIENT)
+            if {conf.ATTR_COURSE, conf.ATTR_ELEVATION}.issubset(attributes):
+                attributes.add(conf.ATTR_GRADIENT)
 
         self.valid_attributes = list(attributes)
         self.tag_map = tag_map
@@ -72,31 +73,39 @@ class Activity:
 
         data = defaultdict(list)
         track_segment = self.gpx.tracks[0].segments[0]
-        previous_point = None
         for ii, point in enumerate(track_segment.points):
             for attribute in self.valid_attributes:
                 match attribute:
-                    case constant.ATTR_COURSE:
+                    case conf.ATTR_COURSE:
                         data[attribute].append((point.latitude, point.longitude))
-                    case constant.ATTR_ELEVATION:
+                    case conf.ATTR_ELEVATION:
                         data[attribute].append(point.elevation)
-                    case constant.ATTR_TIME:
+                    case conf.ATTR_TIME:
                         data[attribute].append(point.time)
-                    case constant.ATTR_SPEED:
-                        data[attribute].append(track_segment.get_speed(ii))
+                    case conf.ATTR_SPEED:
+                        data[attribute].append(track_segment.get_speed(ii) or 0.0)
                         # data[attribute].append(point.speed) - for some reason, point.speed isn't interpreted correctly (always None). maybe try other gpx files to see if it works in other cases?
-                    case constant.ATTR_GRADIENT:
-                        data[attribute].append(gradient(point, previous_point))
-                    case constant.ATTR_CADENCE | constant.ATTR_HEARTRATE | constant.ATTR_POWER | constant.ATTR_TEMPERATURE:
+                    case conf.ATTR_GRADIENT:
+                        if ii == 0:
+                            previous_point = point
+                        else:
+                            previous_point = track_segment.points[ii - 1]
+                        if ii == len(track_segment.points) - 1:
+                            next_point = point
+                        else:
+                            next_point = track_segment.points[ii + 1]
+                        data[attribute].append(gradient(next_point, previous_point))
+                        # data[attribute].append(gradient(point, previous_point))
+                    case conf.ATTR_CADENCE | conf.ATTR_HEARTRATE | conf.ATTR_POWER | conf.ATTR_TEMPERATURE:
                         data[attribute].append(
                             parse_attribute(self.tag_map[attribute], point)
                         )
-            previous_point = point
 
         for attribute in self.valid_attributes:
-            if attribute == constant.ATTR_GRADIENT:
+            if attribute == conf.ATTR_GRADIENT:
                 data[attribute] = smooth_gradients(data[attribute])
             setattr(self, attribute, data[attribute])
+        self.length = len(data[attribute])
 
     def interpolate(self, fps: int):
         def helper(data):
@@ -106,11 +115,18 @@ class Activity:
             new_x = np.arange(x[0], x[-1], 1 / fps)
             return interp_func(new_x).tolist()
 
+        # nones = []
+        # for attribute in self.valid_attributes:
+        #     data = getattr(self, attribute)
+        #     if None in data:
+        #         index = data.index(None)
+        #         nones.append(attribute)
+
         for attribute in self.valid_attributes:
-            if attribute in constant.NO_INTERPOLATE_ATTRIBUTES:
+            if attribute in conf.NO_INTERPOLATE_ATTRIBUTES:
                 continue
             data = getattr(self, attribute)
-            if attribute == constant.ATTR_COURSE:
+            if attribute == conf.ATTR_COURSE:
                 new_lat = helper([ele[0] for ele in data])
                 new_lon = helper([ele[1] for ele in data])
                 new_data = list(zip(new_lat, new_lon))
@@ -118,17 +134,31 @@ class Activity:
                 new_data = helper(data)
             setattr(self, attribute, new_data)
 
+    # TODO: добавить не явное поведение что бы не вызывать исключений по индексам и значениям
     def trim(self, start, end):
+        """
+        Trims the object's data according to the specified start and end indices.
+
+        :param start: The start index for trimming the data.
+        :param end: The end index for trimming the data.
+        :raises ValueError: If the start or end index is less than 0.
+        :raises IndexError: If the start or end index is out of bounds of the data.
+        """
+        # Check the validity of the start and end indices
+        if start < 0:
+            raise ValueError("The start index cannot be less than 0.")
+        if end < 0:
+            raise ValueError("The end index cannot be less than 0.")
+
+        # Check the validity of the start and end indices relative to the length of the object's data
+        if start >= self.length:
+            raise IndexError(f"The start value of the scene in the configuration is invalid. "
+                             f"The value should be less than {self.length}. Current value: {start}")
+        if end > self.length or end < start:
+            raise IndexError(f"The end value of the scene in the configuration is invalid. "
+                             f"The value should be less than {self.length} and greater than {start}. Current value: {end}")
+
+        # Trim the data for all attributes of the object according to the specified indices
         for attribute in self.valid_attributes:
             data = getattr(self, attribute)
-            if start > len(data):
-                print(
-                    f"invalid scene start value in config. Value should be less than {len(data)}. Current value is {start}"
-                )
-                exit(1)
-            if end > len(data) or end < start:
-                print(
-                    f"invalid scene end value in config. Value should be less than {len(data)} and greater than {start}. Current value is {end}"
-                )
-                exit(1)
             setattr(self, attribute, data[start:end])

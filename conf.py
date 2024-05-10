@@ -1,3 +1,28 @@
+from datetime import timedelta
+from enum import Enum
+
+class RenameActions(Enum):
+    INFO = "Show info"
+    RENAME_BY_META = "rename_to_creation_time"
+    RENAME_BY_FS = "rename_to_created_at"
+
+
+RENAME_ACTION = RenameActions.RENAME_BY_META
+
+
+# Source
+SOURCE_DIR = "/Users/Stanislav/Downloads/_Video/vanila_dh/"
+SOURCE_GPX = "_track.gpx"
+# you local time offset * -1
+OFSET_HOURS = -6
+# if you not syncing gopro
+VIDEO_TIME_OFFSET = timedelta(hours=0, minutes=0, seconds=0)
+
+TEMPLATE = "DH.json"
+
+# EXPERT MODE
+QUICKTIME_COMPATIBLE = True
+
 FONTS_DIR = "./fonts/"
 FRAMES_DIR = "./frames/"
 
