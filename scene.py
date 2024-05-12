@@ -1,8 +1,8 @@
 import math
 import os
+import subprocess
 from subprocess import PIPE, Popen
 
-from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 from tqdm import tqdm
 
 import conf
@@ -37,8 +37,8 @@ class Scene:
 
     def render_video(self, seconds):
         self.build_frames(seconds)
-        self.export_video()
-        # self.export_video_new()
+        # self.export_video()
+        self.export_video_new()
 
     def render_demo(self, seconds, second):
         self.build_frame(seconds, second, 0)
@@ -85,19 +85,41 @@ class Scene:
 
 
     def export_video_new(self):
-        import imageio
         import numpy as np
-        # width, height = self.configs["scene"]["width"], self.configs["scene"]["height"]
+        width, height = self.configs["scene"]["width"], self.configs["scene"]["height"]
 
         images = []
         for frame in self.frames:
             img = frame.draw(self.configs)
             images.append(np.array(img))
 
-        # imageio.mimwrite(self.output_filename, images, fps=self.fps, codec='png')
 
-        clip = ImageSequenceClip(images, fps=self.fps)
-        clip.write_videofile(self.output_filename, codec='png', fps=self.fps, verbose=False)
+        # clip = ImageSequenceClip(images, fps=self.fps)
+        # clip.write_videofile(self.output_filename, codec='qtrle', fps=self.fps, verbose=False)
+
+        ffmpeg_cmd = [
+            'ffmpeg', '-y',  # Перезаписать файл, если он существует
+            '-f', 'rawvideo',
+            '-vcodec', 'rawvideo',
+            '-s', f'{width}x{height}',
+            '-pix_fmt', 'rgba',  # Формат пикселей RGBA
+            '-r', str(self.fps),  # Частота кадров
+            '-i', '-',  # Ввод изображений из потока stdin
+            '-c:v', 'prores_ks',  # Кодек qtrle (QuickTime Animation)
+            # '-vf', 'vflip',  # Опционально: отразить изображения (если нужно)
+            self.output_filename
+        ]
+
+        # Записываем видео с помощью ffmpeg
+        process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
+
+        # Пишем изображения в поток stdin ffmpeg
+        for image in images:
+            process.stdin.write(image.tobytes())
+
+        # Закрываем поток stdin и дожидаемся завершения процесса
+        process.stdin.close()
+        process.wait()
 
     def frame_attribute_data(self, second: int, frame_number: int):
         attribute_data = {}
