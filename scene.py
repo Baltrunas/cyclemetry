@@ -1,6 +1,7 @@
 import math
 import os
-import subprocess
+import numpy as np
+
 from subprocess import PIPE, Popen
 
 from tqdm import tqdm
@@ -85,21 +86,15 @@ class Scene:
 
 
     def export_video_new(self):
-        import numpy as np
         width, height = self.configs["scene"]["width"], self.configs["scene"]["height"]
 
-        images = []
-        for frame in self.frames:
-            img = frame.draw(self.configs)
-            images.append(np.array(img))
-
-
-        # clip = ImageSequenceClip(images, fps=self.fps)
-        # clip.write_videofile(self.output_filename, codec='qtrle', fps=self.fps, verbose=False)
 
         ffmpeg_cmd = [
-            'ffmpeg', '-y',  # Перезаписать файл, если он существует
+            'ffmpeg',
+            '-y',  # Перезаписать файл, если он существует
+            "-loglevel", "warning",
             '-f', 'rawvideo',
+            '-probesize', '100M',
             '-vcodec', 'rawvideo',
             '-s', f'{width}x{height}',
             '-pix_fmt', 'rgba',  # Формат пикселей RGBA
@@ -111,13 +106,12 @@ class Scene:
         ]
 
         # Записываем видео с помощью ffmpeg
-        process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
+        process = Popen(ffmpeg_cmd, stdin=PIPE)
 
-        # Пишем изображения в поток stdin ffmpeg
-        for image in images:
-            process.stdin.write(image.tobytes())
+        for frame in tqdm(self.frames, dynamic_ncols=True):
+            img = frame.draw(self.configs)
+            process.stdin.write(np.array(img).tobytes())
 
-        # Закрываем поток stdin и дожидаемся завершения процесса
         process.stdin.close()
         process.wait()
 
