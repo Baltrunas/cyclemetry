@@ -10,16 +10,15 @@ from utils import get_file_list
 def render_overlay(gpx_file, overlay_file):
     activity = Activity(gpx_file)
 
-
-    full_gpx_file = os.path.join(conf.SOURCE_DIR, f"_track.gpx")
-    full_activity = Activity(full_gpx_file)
+    if conf.USE_FULL_TRACK:
+        full_gpx_file = os.path.join(conf.SOURCE_DIR, conf.SOURCE_GPX)
+        full_activity = Activity(full_gpx_file)
+    else:
+        full_activity = None
 
     scene = Scene(activity, overlay_file, conf.TEMPLATE, full_activity)
-    # scene = Scene(activity, overlay_file, conf.TEMPLATE)
     # start, end = 0, 5
     # activity.trim(start, end)
-    activity.interpolate(scene.fps)
-    full_activity.interpolate(scene.fps)
 
     # scene.render_video(570)
     scene.render_video(activity.length)
@@ -28,15 +27,16 @@ def render_overlay(gpx_file, overlay_file):
 def demo_frame(gpx_file, overlay_file, second):
     activity = Activity(gpx_file)
 
-    full_gpx_file = os.path.join(conf.SOURCE_DIR, f"_track.gpx")
-    full_activity = Activity(full_gpx_file)
+
+    if conf.USE_FULL_TRACK:
+        full_gpx_file = os.path.join(conf.SOURCE_DIR, conf.SOURCE_GPX)
+        full_activity = Activity(full_gpx_file)
+    else:
+        full_activity = None
 
     scene = Scene(activity, overlay_file, conf.TEMPLATE, full_activity)
-    # scene = Scene(activity, overlay_file, conf.TEMPLATE)
     # start, end = 0, 560
     # activity.trim(start, end)
-    activity.interpolate(scene.fps)
-    full_activity.interpolate(scene.fps)
 
     # scene.render_demo(end - end, second)
     scene.render_demo(activity.length, second)
@@ -74,11 +74,17 @@ if __name__ == "__main__":
         "_track",
 
         ])
+    import time
+    start_time = time.time()
     for file_name in ls:
         gpx_file_name = os.path.join(conf.SOURCE_DIR, f"{file_name}.gpx")
         overlay_file_name = os.path.join(conf.SOURCE_DIR, f"{file_name}_overlay.mov")
 
         # demo_frame(gpx_file_name, overlay_file_name, 10)
         render_overlay(gpx_file_name, overlay_file_name)
-        join_over(file_name)
+        # join_over(file_name)
         # print(f"Rendering overlay {file_name}.gpx using the {conf.TEMPLATE} template")
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Execution time:", execution_time, "seconds")

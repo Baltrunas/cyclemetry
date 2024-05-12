@@ -13,6 +13,7 @@ RENAME_ACTION = RenameActions.RENAME_BY_META
 # Source
 SOURCE_DIR = "/Users/Stanislav/Downloads/_Video/vanila_dh/"
 SOURCE_GPX = "_track.gpx"
+USE_FULL_TRACK = True
 # you local time offset * -1
 OFSET_HOURS = -6
 # if you not syncing gopro

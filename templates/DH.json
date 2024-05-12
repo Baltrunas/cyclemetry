@@ -2,7 +2,9 @@
   "scene": {
     "fps": 2,
     "height": 2160,
-    "width": 3840
+    "width": 3840,
+    "use_background": false,
+    "background": "DH.png"
   },
   "global": {
     "font_size": 30,

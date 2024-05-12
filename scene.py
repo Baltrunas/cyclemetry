@@ -2,11 +2,12 @@ import math
 import os
 from subprocess import PIPE, Popen
 
+from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 from tqdm import tqdm
 
 import conf
 from config import config_dicts
-from frame import Frame
+from frame import Frame, FrameTemplate
 
 
 class Scene:
@@ -29,9 +30,15 @@ class Scene:
         self.labels = self.configs["labels"]
         self.frames = []
 
+        self.activity.interpolate(self.fps)
+        self.full_activity.interpolate(self.fps)
+        self.frame_template = FrameTemplate(self.configs, self.full_activity, self.labels)
+
+
     def render_video(self, seconds):
         self.build_frames(seconds)
         self.export_video()
+        # self.export_video_new()
 
     def render_demo(self, seconds, second):
         self.build_frame(seconds, second, 0)
@@ -77,17 +84,20 @@ class Scene:
         p.wait()
 
 
-        # TODO - try to not depend on ffmpeg subprocess call please
-        # clips = [
-        #     ImageClip(frame.filename, transparent=True).set_duration(frame_duration)
-        #     for frame in self.frames
-        # ]
-        # concatenate_videoclips(clips, method="compose").write_videofile(
-        #     export_filename,
-        #     codec="mpeg4",
-        #     ffmpeg_params=["-pix_fmt", "yuv420p"],
-        #     fps=config["fps"],
-        # )
+    def export_video_new(self):
+        import imageio
+        import numpy as np
+        # width, height = self.configs["scene"]["width"], self.configs["scene"]["height"]
+
+        images = []
+        for frame in self.frames:
+            img = frame.draw(self.configs)
+            images.append(np.array(img))
+
+        # imageio.mimwrite(self.output_filename, images, fps=self.fps, codec='png')
+
+        clip = ImageSequenceClip(images, fps=self.fps)
+        clip.write_videofile(self.output_filename, codec='png', fps=self.fps, verbose=False)
 
     def frame_attribute_data(self, second: int, frame_number: int):
         attribute_data = {}
@@ -103,17 +113,16 @@ class Scene:
     def build_frame(self, seconds, second, frame_number):
         num_frames = seconds * self.fps
         frame_digits = int(math.log10(num_frames - 2)) + 1
+
         frame = Frame(
             f"{str(second * self.fps + frame_number).zfill(frame_digits)}.png",
-            self.configs["scene"]["width"],
-            self.configs["scene"]["height"],
             second,
             frame_number,
+            template=self.frame_template
         )
         frame.activity = self.activity
         frame.full_activity = self.full_activity
         frame.attributes = self.attributes
-        frame.labels = self.labels
         frame_data = self.frame_attribute_data(second, frame_number)
         for attribute in frame.attributes:
             setattr(frame, attribute, frame_data[attribute])
@@ -121,5 +130,6 @@ class Scene:
 
     def build_frames(self, seconds):
         for second in range(seconds):
+
             for frame_number in range(self.fps):
                 self.build_frame(seconds, second, frame_number)
