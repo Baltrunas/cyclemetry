@@ -35,7 +35,7 @@ class Activity:
         ]
         for track_point in track_points:
             attributes.update(
-                {conf.ATTR_COURSE, conf.ATTR_SPEED}
+                {conf.ATTR_COURSE, conf.ATTR_SPEED, "distance"}
             ) if track_point.latitude and track_point.longitude else None
             attributes.add(conf.ATTR_TIME) if track_point.time else None
             attributes.add(conf.ATTR_ELEVATION) if track_point.elevation else None
@@ -73,11 +73,21 @@ class Activity:
 
         data = defaultdict(list)
         track_segment = self.gpx.tracks[0].segments[0]
+        total_distance = 0
         for ii, point in enumerate(track_segment.points):
             for attribute in self.valid_attributes:
                 match attribute:
                     case conf.ATTR_COURSE:
                         data[attribute].append((point.latitude, point.longitude))
+
+                        if ii > 0:
+                            distance = track_segment.points[ii - 1].distance_2d(track_segment.points[ii])
+                            total_distance += distance
+                            # i += 1
+                        else:
+                            total_distance = 0
+                        data["distance"].append(total_distance)
+
                     case conf.ATTR_ELEVATION:
                         data[attribute].append(point.elevation)
                     case conf.ATTR_TIME:

@@ -64,30 +64,38 @@ class FrameTemplate:
 
     def draw_elevation_profile(self):
         heights = self.full_activity.elevation
+        distances = self.full_activity.distance
+
         config = self.configs['elevation']['profile']
 
-        elevation_img = Image.new('RGBA', (config["width"], config["height"]), (0, 0, 0, 0))
+        elevation_img = Image.new('RGBA', (config["width"], config["height"] + 60), (0, 0, 0, 0))
         draw = ImageDraw.Draw(elevation_img)
 
         # Определяем максимальное и минимальное значение высоты
         max_height = max(heights)
         min_height = min(heights)
 
+        max_width = max(distances)
+
         # Вычисляем коэффициент масштабирования для отображения высоты на изображении
         scale_factor = config["height"] / (max_height - min_height)
+        x_scale_factor = config["width"] / max_width
 
         # Рисуем график
         points = []
+        points.append((0, config["height"] + 60))
+
         for i, height in enumerate(heights):
-            x = int(i * config["width"] / (len(heights) - 1))
-            y = config["height"] - int((height - min_height) * scale_factor) + 10
+            width = distances[i]
+            x = int(width * x_scale_factor)
+            y = config["height"] - int((height - min_height) * scale_factor) + 30
             points.append((x, y))
 
-        points.append((config["height"], config["width"]))
+        points.append((config["width"], config["height"] + 60))
         draw.line(points, fill="#ffffff88", width=15)
         draw.polygon(points, fill="#00000066")
 
-        self.img.paste(elevation_img, (config["x"], config["y"]))
+        self.img.paste(elevation_img, (config["x"], config["y"] - 60))
 
     def draw_course(self):
         course = self.full_activity.course
@@ -143,13 +151,17 @@ class Frame:
 
     def draw_elevation_position(self, img, config, fps=None):
         heights = self.full_activity.elevation
+        distances = self.full_activity.distance
 
         draw = ImageDraw.Draw(img)
 
         max_height = max(heights)
         min_height = min(heights)
 
+        max_width = max(distances)
+
         scale_factor = config["height"] / (max_height - min_height)  # Отступ в 10 пикселей с каждой стороны
+        x_scale_factor = config["width"] / max_width
 
         current_time = self.activity.time[self.second]
         current_y = config["height"] - int((self.elevation - min_height) * scale_factor)
@@ -159,9 +171,11 @@ class Frame:
             graph_time = self.full_activity.time[int(i / fps)]
             if graph_time == current_time:
                 current_x = int(i * config["width"] / (len(heights) - 1))
+                width = distances[i]
+                current_x = int(width * x_scale_factor)
 
         current_x = config["x"] + current_x
-        current_y = config["y"] + current_y
+        current_y = config["y"] + current_y - 30
 
         draw.ellipse([(current_x - 30, current_y - 30), (current_x + 30, current_y + 30)], fill='#ffffff55')
         draw.ellipse([(current_x - 20, current_y - 20), (current_x + 20, current_y + 20)], fill='#ffffff88')
@@ -203,6 +217,7 @@ class Frame:
 
         attributes = self.attributes
         attributes.append("gradient")
+        attributes.append("distance")
         for attribute in attributes:
             config = configs[attribute]
             if "hide" not in config.keys() or not config["hide"]:

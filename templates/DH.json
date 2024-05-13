@@ -93,9 +93,9 @@
       "line_width": 2,
       "hide": true,
       "x": 0,
-      "y": 1860,
+      "y": 1760,
       "width": 3840,
-      "height": 300,
+      "height": 400,
       "font_size": 70,
       "font": "Evogria.otf",
       "fill_opacity": 0.65,
@@ -177,6 +177,9 @@
     "font_size": 70
   },
   "temperature": {
+    "hide": true
+  },
+  "distance": {
     "hide": true
   }
 }
