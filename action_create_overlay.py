@@ -70,10 +70,7 @@ def get_duration(filename):
 
 # TODO improve argument handling
 if __name__ == "__main__":
-    ls = get_file_list(".gpx", exclude=[
-        "_track",
-
-        ])
+    ls = get_file_list(".gpx", exclude=conf.EXCLUDE_FILES)
     import time
     start_time = time.time()
     for file_name in ls:

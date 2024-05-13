@@ -22,7 +22,7 @@ $ source venv/bin/activate
 ```
 
 ## Setup
-Change vars in `conf.py`
+Rename `.env.example` to `.env` and change vars.
 ```
 SOURCE_DIR - path to dir with mp4 gopro videos 
 SOURCE_GPX - path to main gpx file

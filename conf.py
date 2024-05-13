@@ -1,5 +1,8 @@
+import os
 from datetime import timedelta
 from enum import Enum
+
+from dotenv import load_dotenv
 
 class RenameActions(Enum):
     INFO = "Show info"
@@ -7,43 +10,12 @@ class RenameActions(Enum):
     RENAME_BY_FS = "rename_to_created_at"
 
 
-RENAME_ACTION = RenameActions.RENAME_BY_META
-
-
-# Source
-SOURCE_DIR = "/Users/Stanislav/Downloads/_Video/vanila_dh/"
-SOURCE_GPX = "_track.gpx"
-USE_FULL_TRACK = True
-# you local time offset * -1
-OFSET_HOURS = -6
-# if you not syncing gopro
-VIDEO_TIME_OFFSET = timedelta(hours=0, minutes=0, seconds=0)
-
-TEMPLATE = "DH.json"
-
-# EXPERT MODE
-QUICKTIME_COMPATIBLE = True
-
-FONTS_DIR = "./fonts/"
-FRAMES_DIR = "./frames/"
-
-# UNITS
-UNIT_IMPERIAL = "imperial"
-UNIT_METRIC = "metric"
-
-
-# CONVERSIONS
-
 ## IMPERIAL
 FT_CONVERSION = 3.28084
 MPH_CONVERSION = 2.23694
 
 ## METRIC
 KMH_CONVERSION = 3.6
-
-
-ELEVATION_CONVERSION_MAP = {UNIT_IMPERIAL: FT_CONVERSION, UNIT_METRIC: 1}
-
 
 # ATTRIBUTES
 ATTR_CADENCE = "cadence"
@@ -70,27 +42,20 @@ ALL_ATTRIBUTES = [
     ATTR_TEMPERATURE,
 ]
 
+RENAME_ACTION = RenameActions.RENAME_BY_META
+FONTS_DIR = "./fonts/"
+FRAMES_DIR = "./frames/"
 
-# SUFFIXES
-DEFAULT_SUFFIX_MAP = {
-    ATTR_CADENCE: " rpm",
-    ATTR_ELEVATION: {
-        UNIT_IMPERIAL: " ft",
-        UNIT_METRIC: " m",
-    },
-    ATTR_GRADIENT: " %",
-    ATTR_HEARTRATE: " bpm",
-    ATTR_POWER: " W",
-    ATTR_SPEED: {
-        UNIT_IMPERIAL: " mph",
-        UNIT_METRIC: " km/h",
-    },
-    ATTR_TEMPERATURE: {
-        UNIT_IMPERIAL: "°F",
-        UNIT_METRIC: "°C",
-    },
-}
+load_dotenv()
+TEMPLATE = os.getenv("TEMPLATE")
 
-# COLORS
-ANSI_COLOR_MAP = {"green": "\033[92m", "red": "\033[91m", "yellow": "\033[93m"}
-ANSI_RESET_CODE = "\033[0m"
+SOURCE_DIR = os.getenv("SOURCE_DIR")
+SOURCE_GPX = os.getenv("SOURCE_GPX")
+USE_FULL_TRACK = bool(os.getenv("USE_FULL_TRACK"))
+
+OFSET_HOURS = int(os.getenv("OFSET_HOURS"))
+EXCLUDE_FILES = list(os.getenv("EXCLUDE_FILES").split(","))
+
+# if you not syncing gopro
+VIDEO_TIME_OFFSET = timedelta(hours=0, minutes=0, seconds=0)
+QUICKTIME_COMPATIBLE = True

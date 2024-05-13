@@ -2,6 +2,7 @@
 __pycache__/
 .tool-versions
 .idea
+.env
 
 # generated files
 *.mp4
