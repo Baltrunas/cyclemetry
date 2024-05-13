@@ -3,6 +3,7 @@ __pycache__/
 .tool-versions
 .idea
 .env
+templates/private_
 
 # generated files
 *.mp4
