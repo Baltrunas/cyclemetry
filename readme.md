@@ -40,9 +40,12 @@ python3 action_create_overlay.py
 ```
 
 # TODO
+- G-Force data
 - Add points interpolation
-- 
+- Direct video date https://stackoverflow.com/questions/53962820/how-can-i-add-png-images-modified-with-pillow-to-an-opencv-video 
 ## Templates
 - Safa Brian A
 - Safa Brian B
 - NorCal Cycling
+
+
